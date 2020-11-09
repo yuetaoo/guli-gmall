@@ -1,0 +1,36 @@
+server:
+  port: 18086
+spring:
+  application:
+    name: search-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        dashboard: localhost:8080
+        port: 8719
+  zipkin:
+    base-url: http://localhost:9411
+    discovery-client-enabled: true
+    sender:
+      type: web
+  sleuth:
+    sampler:
+      probability: 1
+  elasticsearch:
+    rest:
+      uris: http://192.168.77.128:9200
+  #响应的数据不包含null的字段
+  jackson:
+    default-property-inclusion: non_null
+  #关闭thymeleaf缓存
+  thymeleaf:
+    cache: false
+feign:
+  sentinel:
+    enabled: true
+ribbon:
+  ConnectTimeout: 100000 #连接建立的超时时长，默认1秒
+  ReadTimeout: 100000 #处理请求的超时时间，默认为1秒
