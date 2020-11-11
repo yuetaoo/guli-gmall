@@ -36,11 +36,6 @@ class GmallSearchApplicationTests {
     private GmallWmsClient wmsClient;
 
     @Test
-    void test(){
-        System.out.println(1111111111);
-    }
-
-    @Test
     void contextLoads() {
 
         //初始化索引库和映射
@@ -121,7 +116,7 @@ class GmallSearchApplicationTests {
                         }
                             //基本类型的检索规格参数
                         ResponseVo<List<SpuAttrValueEntity>> spuAttrValueResponseVo = pmsClient
-                                .querySearchSpuAttrValueBySpuIdAndCid(spu.getId(), spu.getCategoryId());
+                                .querySearchSpuAttrValueBySpuIdAndCid(sku.getId(), sku.getCatagoryId());
                         List<SpuAttrValueEntity> spuAttrValueList = spuAttrValueResponseVo.getData();
                         if(!CollectionUtils.isEmpty(spuAttrValueList)){
                             searchAttrValues.addAll(spuAttrValueList.stream().map(spuAttrValue -> {

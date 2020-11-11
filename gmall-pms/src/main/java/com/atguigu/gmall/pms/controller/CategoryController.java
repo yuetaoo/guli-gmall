@@ -27,6 +27,12 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @GetMapping("parent/sub/{parentId}")
+    public ResponseVo<List<CategoryEntity>> quueryLv2CategorySubsByPid(@PathVariable("parentId") Long pId){
+        List<CategoryEntity> categoryEntities =  categoryService.quueryLv2CategorySubsByPid(pId);
+        return ResponseVo.ok(categoryEntities);
+    }
+
     @ApiOperation("根据父id查询分类")
     @GetMapping("parent/{parentId}")
     public ResponseVo<List<CategoryEntity>> queryCategory(

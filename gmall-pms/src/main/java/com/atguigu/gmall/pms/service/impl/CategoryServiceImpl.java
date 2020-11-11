@@ -39,4 +39,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
         return this.categoryMapper.selectList(wrapper);
     }
 
+    @Override
+    public List<CategoryEntity> quueryLv2CategorySubsByPid(Long pId) {
+        return categoryMapper.quueryLv2CategorySubsByPid(pId);
+    }
+
 }

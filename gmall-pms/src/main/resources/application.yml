@@ -1,6 +1,15 @@
 server:
   port: 18081
 spring:
+  rabbitmq:
+    host: 192.168.77.128
+    virtual-host: /gmall
+    username: admin
+    password: admin
+    #生产者确认模式
+    publisher-confirm-type: correlated
+    #开启消息没有到达队列的回调
+    publisher-returns: true
   application:
     name: pms-service
   cloud:
@@ -43,7 +52,7 @@ mybatis-plus:
 feign:
   sentinel:
     enabled: true
-#ribbon:
-#  ConnectTimeout: 10000 #连接建立的超时时长，默认1秒
-#  ReadTimeout: 10000 #处理请求的超时时间，默认为1秒
+ribbon:
+  ConnectTimeout: 10000 #连接建立的超时时长，默认1秒
+  ReadTimeout: 10000 #处理请求的超时时间，默认为1秒
 

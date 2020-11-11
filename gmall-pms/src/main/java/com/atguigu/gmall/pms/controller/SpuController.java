@@ -28,9 +28,8 @@ public class SpuController {
     @Autowired
     private SpuService spuService;
 
-    @PostMapping("json")
+    @PostMapping("json")//spu分页查询
     public ResponseVo<List<SpuEntity>> querySpuByPageJson(@RequestBody PageParamVo paramVo){
-
         PageResultVo pageResultVo = spuService.queryPage(paramVo);
         return ResponseVo.ok((List<SpuEntity>)pageResultVo.getList());
     }

@@ -1,6 +1,20 @@
 server:
   port: 18086
 spring:
+  rabbitmq:
+    host: 192.168.77.128
+    virtual-host: /gmall
+    username: admin
+    password: admin
+    #消费者确认
+    listener:
+      simple:
+        #开启能者多劳
+        prefetch: 1
+        #开启多线程消费
+        concurrency: 4
+        #手动确认模式
+        acknowledge-mode: manual
   application:
     name: search-service
   cloud:
