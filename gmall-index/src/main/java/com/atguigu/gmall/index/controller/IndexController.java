@@ -32,4 +32,11 @@ public class IndexController {
         model.addAttribute("categories", cates);
         return "index";
     }
+
+    @GetMapping("index/test")
+    @ResponseBody
+    public ResponseVo testLock(){
+        indexService.testLock();
+        return ResponseVo.ok();
+    }
 }

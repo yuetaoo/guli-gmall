@@ -12,6 +12,12 @@
     <description>谷粒商城首页系统</description>
 
     <dependencies>
+<!--        引入redisson分布式锁的依赖-->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>3.13.6</version>
+        </dependency>
         <!--        引入common工程  -->
         <dependency>
             <groupId>com.atguigu</groupId>
