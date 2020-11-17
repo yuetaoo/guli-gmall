@@ -15,7 +15,7 @@ public class RabbitConfig {
     private RabbitTemplate rabbitTemplate;
 
     @PostConstruct
-    public void init(){
+    public void init(){ //设置生产者确认的回调
         rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
             log.error("消息发送失败。交换机：{}, 路由键：{}, 消息内容：{}", exchange, routingKey, message);
         });

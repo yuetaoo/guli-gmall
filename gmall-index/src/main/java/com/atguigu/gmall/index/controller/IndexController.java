@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
@@ -17,6 +18,11 @@ public class IndexController {
 
     @Autowired
     private IndexService indexService;
+
+    @GetMapping("test")
+    public String test(@RequestHeader("userId")String userId){
+        return "用户登录的信息:" + userId;
+    }
 
     @GetMapping("index/cates/{pId}")
     @ResponseBody

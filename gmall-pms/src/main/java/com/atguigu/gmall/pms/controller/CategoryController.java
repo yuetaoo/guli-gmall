@@ -27,6 +27,12 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @GetMapping("all/{cid}")
+    public ResponseVo<List<CategoryEntity>> queryAllCategoryByCid3(@PathVariable("cid") Long cid){
+        List<CategoryEntity> categoryEntities = categoryService.queryAllCategoryByCid3(cid);
+        return ResponseVo.ok(categoryEntities);
+    }
+
     @GetMapping("parent/sub/{parentId}")
     public ResponseVo<List<CategoryEntity>> quueryLv2CategorySubsByPid(@PathVariable("parentId") Long pId){
         List<CategoryEntity> categoryEntities =  categoryService.quueryLv2CategorySubsByPid(pId);

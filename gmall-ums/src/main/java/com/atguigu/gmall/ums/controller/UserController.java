@@ -27,6 +27,26 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @GetMapping("check/{data}/{type}")
+    public ResponseVo<Boolean> checkData(@PathVariable("data")String data,
+                                         @PathVariable("type")Integer type){
+        Boolean flag = userService.checkData(data, type);
+        return ResponseVo.ok(flag);
+    }
+
+    @PostMapping("register")//注册
+    public ResponseVo register(UserEntity user, @RequestParam("code")String code){
+        userService.register(user, code);
+        return ResponseVo.ok();
+    }
+
+    @GetMapping("query")
+    public ResponseVo<UserEntity> queryUser(@RequestParam("loginName")String loginName,
+                                            @RequestParam("password")String password){
+        UserEntity user = this.userService.queryUser(loginName, password);
+        return ResponseVo.ok(user);
+    }
+
     /**
      * 列表
      */

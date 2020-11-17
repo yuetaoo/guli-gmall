@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -42,6 +43,23 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, CategoryEnt
     @Override
     public List<CategoryEntity> quueryLv2CategorySubsByPid(Long pId) {
         return categoryMapper.quueryLv2CategorySubsByPid(pId);
+    }
+
+    @Override
+    public List<CategoryEntity> queryAllCategoryByCid3(Long cid) {
+        //查询三级分类
+        CategoryEntity categoryEntity3 = this.getById(cid);
+        if(categoryEntity3 == null){
+            return null;
+        }
+        //查询二级分类
+        CategoryEntity categoryEntity2 = this.getById(categoryEntity3.getParentId());
+        if(categoryEntity2 == null){
+            return null;
+        }
+        //查询一级分类
+        CategoryEntity categoryEntity1 = this.getById(categoryEntity2.getParentId());
+        return Arrays.asList(categoryEntity1,categoryEntity2,categoryEntity3);
     }
 
 }

@@ -6,7 +6,7 @@ import com.atguigu.gmall.pms.entity.*;
 import com.atguigu.gmall.pms.entity.vo.SkuVo;
 import com.atguigu.gmall.pms.entity.vo.SpuAttrValueVo;
 import com.atguigu.gmall.pms.entity.vo.SpuVo;
-import com.atguigu.gmall.pms.feign.GmallSmsClientPms;
+import com.atguigu.gmall.pms.feign.GmallSmsApiPms;
 import com.atguigu.gmall.pms.mapper.SkuMapper;
 import com.atguigu.gmall.pms.mapper.SpuDescMapper;
 import com.atguigu.gmall.pms.mapper.SpuMapper;
@@ -14,7 +14,7 @@ import com.atguigu.gmall.pms.service.SkuAttrValueService;
 import com.atguigu.gmall.pms.service.SkuImagesService;
 import com.atguigu.gmall.pms.service.SpuAttrValueService;
 import com.atguigu.gmall.pms.service.SpuService;
-import com.atguigu.gmall.sms.vo.SkuSaleVo;
+import com.atguigu.gmall.sms.entity.vo.SkuSaleVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -50,7 +50,7 @@ public class SpuServiceImpl extends ServiceImpl<SpuMapper, SpuEntity> implements
     private SkuAttrValueService skuAttrValueService;
 
     @Autowired
-    private GmallSmsClientPms smsClient;
+    private GmallSmsApiPms smsClient;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -133,7 +133,7 @@ public class SpuServiceImpl extends ServiceImpl<SpuMapper, SpuEntity> implements
                 smsClient.saveSkuSaleInfo(saleVo);
             });
         }
-        //保存完发送消息
+        //保存完发送消息。生产者发送消息同步es
         rabbitTemplate.convertAndSend("PMS_SPU_EXCHANGE", "item.insert", spuId);
     }
 

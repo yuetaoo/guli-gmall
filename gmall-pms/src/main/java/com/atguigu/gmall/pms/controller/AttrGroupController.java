@@ -5,6 +5,7 @@ import com.atguigu.gmall.common.bean.PageResultVo;
 import com.atguigu.gmall.common.bean.ResponseVo;
 import com.atguigu.gmall.pms.entity.AttrGroupEntity;
 import com.atguigu.gmall.pms.service.AttrGroupService;
+import com.atguigu.gmall.pms.entity.vo.GroupVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,6 +28,15 @@ public class AttrGroupController {
 
     @Autowired
     private AttrGroupService attrGroupService;
+
+    @GetMapping("/withattrvalues")
+    public ResponseVo<List<GroupVo>> queryGroupsBySpuIdAndCid(
+            @RequestParam("spuId")Long spuId,
+            @RequestParam("skuId")Long skuId,
+            @RequestParam("cid")Long cid ){
+        List<GroupVo> GroupVoList = attrGroupService.queryGroupsBySpuSkuCid(spuId, skuId, cid);
+        return ResponseVo.ok(GroupVoList);
+    }
 
     @ApiOperation("查询分类下的分组及其规格参数")
     @GetMapping("withattrs/{catId}")

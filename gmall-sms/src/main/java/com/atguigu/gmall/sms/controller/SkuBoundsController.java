@@ -3,8 +3,9 @@ package com.atguigu.gmall.sms.controller;
 import com.atguigu.gmall.common.bean.PageParamVo;
 import com.atguigu.gmall.common.bean.PageResultVo;
 import com.atguigu.gmall.common.bean.ResponseVo;
-import com.atguigu.gmall.sms.vo.SkuSaleVo;
 import com.atguigu.gmall.sms.entity.SkuBoundsEntity;
+import com.atguigu.gmall.sms.entity.vo.ItemSaleVo;
+import com.atguigu.gmall.sms.entity.vo.SkuSaleVo;
 import com.atguigu.gmall.sms.service.SkuBoundsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,6 +28,12 @@ public class SkuBoundsController {
 
     @Autowired
     private SkuBoundsService skuBoundsService;
+
+    @GetMapping("sales/sku/{skuId}")
+    public ResponseVo<List<ItemSaleVo>> querySalesBySkuId(@PathVariable("skuId")Long skuId){
+        List<ItemSaleVo> itemSales = this.skuBoundsService.querySalesBySkuId(skuId);
+        return ResponseVo.ok(itemSales);
+    }
 
     @ApiOperation("新增sku的营销信息")
     @PostMapping("/skusale/save")
