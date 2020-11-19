@@ -46,7 +46,6 @@ public class SkuController {
         return ResponseVo.ok(pageResultVo);
     }
 
-
     /**
      * 信息
      */
@@ -76,7 +75,6 @@ public class SkuController {
     @ApiOperation("修改")
     public ResponseVo update(@RequestBody SkuEntity sku){
 		skuService.updateById(sku);
-
         return ResponseVo.ok();
     }
 

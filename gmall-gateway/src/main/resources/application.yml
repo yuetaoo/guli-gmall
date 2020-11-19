@@ -49,10 +49,14 @@ spring:
           uri: lb://item-service
           predicates:
             - Host=item.gmall.com
-        - id: auth-route # 商品详情管理路由
+        - id: auth-route # 登录身份管理路由
           uri: lb://auth-service
           predicates:
             - Host=sso.gmall.com
+        - id: cart-route # 购物车系统路由
+          uri: lb://cart-service
+          predicates:
+            - Host=cart.gmall.com
 
 jwt:
   pubKeyPath: D:\mywork\Project\gmall\key\rsa.pub

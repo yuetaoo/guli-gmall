@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @EnableConfigurationProperties(JwtProperties.class)
-//自定义网关过滤器步骤
+//自定义网关过滤器进行身份认证
 @Component     //1.创建类继承AbstractGatewayFilterFactory   // 3. 添加泛型KeyValueConfig（内部类）
 public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthGatewayFilterFactory.KeyValueConfig> {
 

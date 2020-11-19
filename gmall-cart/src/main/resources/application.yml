@@ -1,0 +1,66 @@
+server:
+  port: 18090
+spring:
+  rabbitmq:
+    host: 192.168.77.128
+    virtual-host: /gmall
+    username: admin
+    password: admin
+    #消费者确认模式
+    listener:
+      simple:
+        #每次消费条数
+        prefetch: 1
+        acknowledge-mode: manual
+        concurrency: 3
+  application:
+    name: cart-service
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/gmall_cart?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: 123456
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080
+        port: 8719
+  redis:
+    host: 192.168.77.128
+  zipkin:
+    base-url: http://127.0.0.1:9411
+    discovery-client-enabled: false
+    sender:
+      type: web
+  sleuth:
+    sampler:
+      probability: 1
+  thymeleaf:
+    cache: false
+  task:
+    execution:
+      thread-name-prefix: cart-task-
+      pool:
+        core-size: 8
+        max-size: 12
+        keep-alive: 60s
+        queue-capacity: 500
+        #是否允许核心线程超时销毁
+        allow-core-thread-timeout: true
+        #关闭服务时等待异步任务执行完成
+      shutdown:
+        await-termination: true
+          #等待时间
+        await-termination-period: 60s
+feign:
+  sentinel:
+    enabled: true
+
+jwt:
+  pubKeyPath: D:\mywork\Project\gmall\key\rsa.pub
+  cookieName: GMALL-TOKEN
+  userKey: user-Key
+  expire: 155200
