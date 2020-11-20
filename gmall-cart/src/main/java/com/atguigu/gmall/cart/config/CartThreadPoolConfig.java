@@ -1,4 +1,4 @@
-package com.atguigu.gmall.item.config;
+package com.atguigu.gmall.cart.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Configuration  //配置
-public class ThreadPoolConfig {
+public class CartThreadPoolConfig {
 
     @Bean
     public ThreadPoolExecutor threadPoolExecutor(

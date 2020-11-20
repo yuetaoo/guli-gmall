@@ -22,6 +22,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +44,9 @@ public class CartServiceImpl implements CartService {
     @Autowired
     private CartAsynService cartAsynService;
 
+    @Autowired
+    private ThreadPoolExecutor threadPoolExecutor;
+
     private static final String KEY_PREFIX = "cart:info:";
 
     private static final String PRICE_PREFIX = "cart:price:";
@@ -54,7 +59,7 @@ public class CartServiceImpl implements CartService {
         //2.查询redis，获取用户购物车集合。 boundHashOps通过外层key获取内层的map结构
         BigDecimal count = cart.getCount();//要添加的商品数量
         BoundHashOperations<String, Object, Object> hashOps = redisTemplate.boundHashOps(KEY_PREFIX + userId);
-        // 判断用户购物车中是否包含当前商品
+        //3.判断用户购物车中是否包含当前商品
         if(hashOps.hasKey(cart.getSkuId().toString())){
             //包含，获取cart对象并修改数量
             String json = hashOps.get(cart.getSkuId().toString()).toString();
@@ -64,41 +69,55 @@ public class CartServiceImpl implements CartService {
 
             //异步写mysql
             this.cartAsynService.updateCart(cart, userId);
+            //写入redis
+            hashOps.put(cart.getSkuId().toString(), JSON.toJSONString(cart));
         } else {
             //不包含,添加cart其它属性,新增一条记录
 
-            cart.setUserId(userId);
+            Cart finalCart = cart;
+            finalCart.setUserId(userId);
                 //sku信息
-            ResponseVo<SkuEntity> skuById = pmsClient.querySkuById(cart.getSkuId());
-            SkuEntity skuEntity = skuById.getData();
-            if(skuEntity == null){
-                return;
-            }
-            cart.setTitle(skuEntity.getTitle());
-            cart.setPrice(skuEntity.getPrice());
-            cart.setDefaultImage(skuEntity.getDefaultImage());
-                //库存信息
-            ResponseVo<List<WareSkuEntity>> wareSkuBySkuId = wmsClient.queryWareSkuBySkuId(cart.getSkuId());
-            List<WareSkuEntity> wareSkuList = wareSkuBySkuId.getData();
-            if(!CollectionUtils.isEmpty(wareSkuList)){
-                cart.setStore(wareSkuList.stream().anyMatch(wareSkuEntity -> wareSkuEntity.getStock() - wareSkuEntity.getStockLocked() > 0));
-            }
-                //销售属性
-            ResponseVo<List<SkuAttrValueEntity>> querySaleBySkuId = pmsClient.querySaleBySkuId(cart.getSkuId());
-            List<SkuAttrValueEntity> skuAttr = querySaleBySkuId.getData();
-            cart.setSaleAttrs(JSON.toJSONString(skuAttr));
-                //营销信息
-            ResponseVo<List<ItemSaleVo>> salesBySkuId = smsClient.querySalesBySkuId(cart.getSkuId());
-            List<ItemSaleVo> sales = salesBySkuId.getData();
-            cart.setSales(JSON.toJSONString(sales));
-            cart.setCheck(true);
+            CompletableFuture<Void> skuFuture = CompletableFuture.runAsync(() -> {
+                ResponseVo<SkuEntity> skuById = pmsClient.querySkuById(finalCart.getSkuId());
+                SkuEntity skuEntity = skuById.getData();
+                if (skuEntity != null) {
+                    finalCart.setTitle(skuEntity.getTitle());
+                    finalCart.setPrice(skuEntity.getPrice());
+                    finalCart.setDefaultImage(skuEntity.getDefaultImage());
+                }
+                throw new CartException("要添加的商品不存在！");
+            }, threadPoolExecutor).exceptionally( e -> {//获取子线程异常
+                throw new CartException("要添加的商品不存在！");
+            });
+            //库存信息
+            CompletableFuture<Void> wareFuture = CompletableFuture.runAsync(() -> {
+                ResponseVo<List<WareSkuEntity>> wareSkuBySkuId = wmsClient.queryWareSkuBySkuId(finalCart.getSkuId());
+                List<WareSkuEntity> wareSkuList = wareSkuBySkuId.getData();
+                if (!CollectionUtils.isEmpty(wareSkuList)) {
+                    finalCart.setStore(wareSkuList.stream().anyMatch(wareSkuEntity -> wareSkuEntity.getStock() - wareSkuEntity.getStockLocked() > 0));
+                }
+            }, threadPoolExecutor);
+            //销售属性
+            CompletableFuture<Void> attrFuture = CompletableFuture.runAsync(() -> {
+                ResponseVo<List<SkuAttrValueEntity>> querySaleBySkuId = pmsClient.querySaleBySkuId(finalCart.getSkuId());
+                List<SkuAttrValueEntity> skuAttr = querySaleBySkuId.getData();
+                finalCart.setSaleAttrs(JSON.toJSONString(skuAttr));
+            }, threadPoolExecutor);
+            //营销信息
+            CompletableFuture<Void> saleFuture = CompletableFuture.runAsync(() -> {
+                ResponseVo<List<ItemSaleVo>> salesBySkuId = smsClient.querySalesBySkuId(finalCart.getSkuId());
+                List<ItemSaleVo> sales = salesBySkuId.getData();
+                finalCart.setSales(JSON.toJSONString(sales));
+            }, threadPoolExecutor);
+            finalCart.setCheck(true);
+            CompletableFuture.allOf(skuFuture, wareFuture, attrFuture, saleFuture).join();
                 //异步写mysql
-            this.cartAsynService.insert(cart);
+            this.cartAsynService.insert(finalCart);
             //添加价格缓存
-            redisTemplate.opsForValue().set(PRICE_PREFIX + skuEntity.getId(), skuEntity.getPrice().toString());
-        }
+            redisTemplate.opsForValue().set(PRICE_PREFIX + finalCart.getId(), finalCart.getPrice().toString());
             //写入redis
-            hashOps.put(cart.getSkuId().toString(), JSON.toJSONString(cart));
+            hashOps.put(finalCart.getSkuId().toString(), JSON.toJSONString(finalCart));
+        }
     }
 
     private String getUserId() {
@@ -182,6 +201,7 @@ public class CartServiceImpl implements CartService {
         if(!CollectionUtils.isEmpty(loginCartJsons)){
             return loginCartJsons.stream().map(cartJson -> {
                 Cart cart = JSON.parseObject(cartJson.toString(), Cart.class);
+                //设置实时价格
                 cart.setCurrentPrice(new BigDecimal(redisTemplate.opsForValue().get(PRICE_PREFIX + cart.getSkuId())));
                 return cart;
             }).collect(Collectors.toList());

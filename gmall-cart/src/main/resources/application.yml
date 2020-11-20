@@ -64,3 +64,8 @@ jwt:
   cookieName: GMALL-TOKEN
   userKey: user-Key
   expire: 155200
+threadPool:
+  coreSize: 100
+  maxSize: 200
+  keepAlive: 60
+  blockingSize: 1000

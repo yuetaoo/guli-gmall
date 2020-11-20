@@ -54,7 +54,7 @@ public class CartController {
     }
 
     /**
-     * 新增购物车成功页面
+     * 新增购物车成功页面，展示商品信息
      * @param
      * @return
      */
