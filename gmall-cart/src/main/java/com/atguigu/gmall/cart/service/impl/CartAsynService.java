@@ -14,12 +14,13 @@ public class CartAsynService {
     private CartMapper cartMapper;
 
     @Async
-    public void updateCart(Cart cart, String userId) {
+    public void updateCart(String userId, Cart cart) {
         cartMapper.update(cart, new UpdateWrapper<Cart>().eq("user_id", userId).eq("sku_id", cart.getSkuId()));
     }
 
     @Async
-    public void insert(Cart cart) {
+    public void insertCart(String userId, Cart cart) {
+        int a = 1 / 0;
         cartMapper.insert(cart);
     }
 
@@ -29,7 +30,7 @@ public class CartAsynService {
     }
 
     @Async
-    public void deleteCartBySkuIdUserid(Long skuId, String userId) {
+    public void deleteCartBySkuIdUserid(String userId, Long skuId) {
         cartMapper.delete(new UpdateWrapper<Cart>().eq("user_id", userId).eq("sku_id", skuId));
     }
 }

@@ -53,7 +53,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void addCart(Cart cart) {
-        //1.获取用户登录信息
+        //1.获取用户登录信息,用户登录了获取userId未登录获取userKey
         String userId = getUserId();
 
         //2.查询redis，获取用户购物车集合。 boundHashOps通过外层key获取内层的map结构
@@ -68,7 +68,7 @@ public class CartServiceImpl implements CartService {
             //修改完成写回redis
 
             //异步写mysql
-            this.cartAsynService.updateCart(cart, userId);
+            this.cartAsynService.updateCart(userId, cart);
             //写入redis
             hashOps.put(cart.getSkuId().toString(), JSON.toJSONString(cart));
         } else {
@@ -77,18 +77,22 @@ public class CartServiceImpl implements CartService {
             Cart finalCart = cart;
             finalCart.setUserId(userId);
                 //sku信息
-            CompletableFuture<Void> skuFuture = CompletableFuture.runAsync(() -> {
-                ResponseVo<SkuEntity> skuById = pmsClient.querySkuById(finalCart.getSkuId());
-                SkuEntity skuEntity = skuById.getData();
-                if (skuEntity != null) {
-                    finalCart.setTitle(skuEntity.getTitle());
-                    finalCart.setPrice(skuEntity.getPrice());
-                    finalCart.setDefaultImage(skuEntity.getDefaultImage());
-                }
-                throw new CartException("要添加的商品不存在！");
-            }, threadPoolExecutor).exceptionally( e -> {//获取子线程异常
-                throw new CartException("要添加的商品不存在！");
-            });
+            CompletableFuture<Void> skuFuture = null;
+            try {
+                skuFuture = CompletableFuture.runAsync(() -> {
+                    ResponseVo<SkuEntity> skuById = pmsClient.querySkuById(finalCart.getSkuId());
+                    SkuEntity skuEntity = skuById.getData();
+                    if (skuEntity != null) {
+                        finalCart.setTitle(skuEntity.getTitle());
+                        finalCart.setPrice(skuEntity.getPrice());
+                        finalCart.setDefaultImage(skuEntity.getDefaultImage());
+                    } else {
+                        throw new CartException("要添加的商品不存在！");
+                    }
+                }, threadPoolExecutor);
+            } catch (Exception e) {
+                skuFuture.completeExceptionally(e);//抛出子线程的异常
+            }
             //库存信息
             CompletableFuture<Void> wareFuture = CompletableFuture.runAsync(() -> {
                 ResponseVo<List<WareSkuEntity>> wareSkuBySkuId = wmsClient.queryWareSkuBySkuId(finalCart.getSkuId());
@@ -112,7 +116,7 @@ public class CartServiceImpl implements CartService {
             finalCart.setCheck(true);
             CompletableFuture.allOf(skuFuture, wareFuture, attrFuture, saleFuture).join();
                 //异步写mysql
-            this.cartAsynService.insert(finalCart);
+            this.cartAsynService.insertCart(userId, finalCart);
             //添加价格缓存
             redisTemplate.opsForValue().set(PRICE_PREFIX + finalCart.getId(), finalCart.getPrice().toString());
             //写入redis
@@ -181,11 +185,11 @@ public class CartServiceImpl implements CartService {
                     cart = JSON.parseObject(cartJson, Cart.class);//注意cart对象已经刷新
                     cart.setCount(cart.getCount().add(unLoginCount));
                     //异步更新mysql
-                    cartAsynService.updateCart(cart, userId.toString());
+                    cartAsynService.updateCart( userId.toString(), cart);
                 } else {
                     //登录状态购物车不包含该记录，新增记录
                     cart.setUserId(userId.toString());
-                    cartAsynService.insert(cart);
+                    cartAsynService.insertCart(userId.toString(), cart);
                 }
                 //保存到redis
                 loginHashOps.put(skuId, JSON.toJSONString(cart));
@@ -220,7 +224,7 @@ public class CartServiceImpl implements CartService {
             cart = JSON.parseObject(cartJson, Cart.class);
             cart.setCount(count);
             hashOps.put(cart.getSkuId().toString(),JSON.toJSONString(cart));
-            cartAsynService.updateCart(cart, userId);
+            cartAsynService.updateCart(userId, cart);
         }
         throw new CartException("用户购物车不包含该条记录");
     }
@@ -231,7 +235,7 @@ public class CartServiceImpl implements CartService {
         BoundHashOperations<String, Object, Object> hashOps = redisTemplate.boundHashOps(KEY_PREFIX + userId);
         if(hashOps.hasKey(skuId.toString())){
             hashOps.delete(skuId.toString());
-            cartAsynService.deleteCartBySkuIdUserid(skuId, userId);
+            cartAsynService.deleteCartBySkuIdUserid(userId, skuId );
             return;
         }
         throw new CartException("用户购物车不存在该商品");
