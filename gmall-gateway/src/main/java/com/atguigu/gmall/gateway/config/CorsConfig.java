@@ -20,6 +20,7 @@ public class CorsConfig {
         config.addAllowedOrigin("http://gmall.com");
         config.addAllowedOrigin("http://api.gmall.com");
         config.addAllowedOrigin("http://sso.gmall.com");
+        config.addAllowedOrigin("http://order.gmall.com");
         // 允许的头信息
         config.addAllowedHeader("*");
         // 允许的请求方式

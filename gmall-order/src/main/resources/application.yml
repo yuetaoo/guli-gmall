@@ -1,0 +1,53 @@
+server:
+  port: 18092
+spring:
+  application:
+    name: order-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080
+        port: 8719
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/guli_oms?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: 123456
+  redis:
+    host: 192.168.77.128
+  zipkin:
+    base-url: http://127.0.0.1:9411
+    discovery-client-enabled: false
+    sender:
+      type: web
+  sleuth:
+    sampler:
+      probability: 1
+  rabbitmq:
+    host: 192.168.77.128
+    virtual-host: /gmall
+    username: admin
+    password: admin
+    #生产者确认
+    publisher-confirm-type: correlated
+    #开启回调
+    publisher-returns: true
+  thymeleaf:
+    cache: false
+feign:
+  sentinel:
+    enabled: true
+logging:
+  level:
+    com.atguigu.gmall: debug
+threadPool:
+  coreSize: 100
+  maxSize: 200
+  keepAlive: 60
+  blockingSize: 1000
+ribbon:
+  ConnectTimeout: 100000 #连接建立的超时时长，默认1秒
+  ReadTimeout: 100000 #处理请求的超时时间，默认为1秒

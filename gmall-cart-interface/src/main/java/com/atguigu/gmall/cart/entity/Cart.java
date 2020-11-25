@@ -29,4 +29,5 @@ public class Cart {
     private BigDecimal count = new BigDecimal(1);
     private Boolean store = false; // 是否有货
     private String sales; // 营销信息: List<ItemSaleVo>的json格式
+
 }

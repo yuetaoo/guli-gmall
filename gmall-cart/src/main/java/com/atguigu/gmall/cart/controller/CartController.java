@@ -18,6 +18,13 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
+    @GetMapping("user/{userId}")
+    @ResponseBody
+    public ResponseVo<List<Cart>> queryCartsByUserId(@PathVariable("userId")Long userId){
+        List<Cart> cartList = cartService.queryCheckCartsByUserId(userId);
+        return ResponseVo.ok(cartList);
+    }
+
     @PostMapping("deleteCart")
     @ResponseBody
     public ResponseVo deleteCart(@RequestParam("skuId")Long skuId){

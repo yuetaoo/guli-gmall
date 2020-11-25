@@ -11,6 +11,18 @@ spring:
       transport:
         dashboard: 127.0.0.1:8080
         port: 8719
+  rabbitmq:
+    host: 192.168.77.128
+    virtual-host: /gmall
+    username: admin
+    password: admin
+    listener:
+      simple:
+        prefetch: 1
+        acknowledge-mode: manual
+        concurrency: 4
+    publisher-confirm-type: correlated
+    publisher-returns: true
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/guli_wms?useUnicode=true&characterEncoding=UTF-8&useSSL=false

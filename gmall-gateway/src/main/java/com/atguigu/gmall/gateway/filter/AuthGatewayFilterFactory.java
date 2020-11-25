@@ -21,6 +21,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,7 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
     // 5.重写 shortcutFieldOrder 方法，指定接收参数的顺序
     @Override
     public List<String> shortcutFieldOrder() {
+        //paths 接收拦截路径的集合的变量名
         return Arrays.asList("paths");
     }
 
@@ -68,7 +71,7 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
                 List<String> paths = config.getPaths();
                     //判断拦截名单中是否包含当前请求的路径
                 if(!paths.stream().anyMatch(path -> curPath.startsWith(path) )) {
-                    return chain.filter(exchange);
+                    return chain.filter(exchange);//不包含就放行
                 }
 
                 //2.获取请求的token信息(异步请求->请求头中获取  同步请求->cookie中获取)
@@ -85,9 +88,18 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
                 //3.判断token是否为空，是->重定向到登录页面
                 if(StringUtils.isBlank(token)){
                     response.setStatusCode(HttpStatus.SEE_OTHER);//设置响应状态码
+                    String url = request.getURI().toString();
                     //设置响应路径
-                    response.getHeaders().set(HttpHeaders.LOCATION, "http://sso.gmall.com/toLogin.html?returnUrl=" + request.getURI());
-                    return response.setComplete();//拦截后续业务逻辑
+                    if(url.startsWith("http://order.gmall.com/confirm")){
+                        //处理未登录购物车结算点击时购物车记录不一致问题.
+                        try {
+                            url = URLEncoder.encode("http://cart.gmall.com/cart.html", "utf-8");
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    response.getHeaders().set(HttpHeaders.LOCATION, "http://sso.gmall.com/toLogin.html?returnUrl=" + url);
+                    return response.setComplete();//setComplete()处理完成，拦截后续业务逻辑
                 }
 
                 try {
@@ -102,7 +114,7 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
                         response.setStatusCode(HttpStatus.SEE_OTHER);//设置响应状态码
                         //设置响应路径
                         response.getHeaders().set(HttpHeaders.LOCATION, "http://sso.gmall.com/toLogin.html?returnUrl=" + request.getURI());
-                        return response.setComplete();//拦截后续业务逻辑
+                        return response.setComplete();//指示消息已处理完成，拦截后续业务逻辑
                     }
 
                 //6.把解析到的用户登录信息传递给后续服务。
@@ -115,7 +127,7 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
                     //出现异常，重定向到登录页面
                     response.setStatusCode(HttpStatus.SEE_OTHER);//设置响应状态码
                     response.getHeaders().set(HttpHeaders.LOCATION, "http://sso.gmall.com/toLogin.html?returnUrl=" + request.getURI());
-                    return response.setComplete();//拦截后续业务逻辑
+                    return response.setComplete();//指示消息已处理完成，拦截后续业务逻辑
                 }
                 //放行
                 return chain.filter(exchange);

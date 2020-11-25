@@ -118,7 +118,7 @@ public class CartServiceImpl implements CartService {
                 //异步写mysql
             this.cartAsynService.insertCart(userId, finalCart);
             //添加价格缓存
-            redisTemplate.opsForValue().set(PRICE_PREFIX + finalCart.getId(), finalCart.getPrice().toString());
+            redisTemplate.opsForValue().set(PRICE_PREFIX + finalCart.getSkuId(), finalCart.getPrice().toString());
             //写入redis
             hashOps.put(finalCart.getSkuId().toString(), JSON.toJSONString(finalCart));
         }
@@ -239,5 +239,18 @@ public class CartServiceImpl implements CartService {
             return;
         }
         throw new CartException("用户购物车不存在该商品");
+    }
+
+    @Override
+    public List<Cart> queryCheckCartsByUserId(Long userId) {
+        BoundHashOperations<String, Object, Object> hashOps = redisTemplate.boundHashOps(KEY_PREFIX + userId);
+        List<Object> cartJsons = hashOps.values();
+        if(CollectionUtils.isEmpty(cartJsons)){
+            throw new CartException("您没有选中的购物车记录");
+        }
+        return cartJsons.stream().map(cartjson -> {
+            Cart cart = JSON.parseObject(cartjson.toString(), Cart.class);
+            return cart;
+        }).filter(Cart::getCheck).collect(Collectors.toList());
     }
 }

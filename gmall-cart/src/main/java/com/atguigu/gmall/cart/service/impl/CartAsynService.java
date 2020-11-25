@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CartAsynService {
 
@@ -20,7 +22,6 @@ public class CartAsynService {
 
     @Async
     public void insertCart(String userId, Cart cart) {
-        int a = 1 / 0;
         cartMapper.insert(cart);
     }
 
@@ -32,5 +33,10 @@ public class CartAsynService {
     @Async
     public void deleteCartBySkuIdUserid(String userId, Long skuId) {
         cartMapper.delete(new UpdateWrapper<Cart>().eq("user_id", userId).eq("sku_id", skuId));
+    }
+
+    @Async
+    public void deleteCartBySkuidsAndUserid(String userId, List<String> skuIds) {
+        cartMapper.delete(new UpdateWrapper<Cart>().eq("user_id", userId).in("sku_id", skuIds));
     }
 }

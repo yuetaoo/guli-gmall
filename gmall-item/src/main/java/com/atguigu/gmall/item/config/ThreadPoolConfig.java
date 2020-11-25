@@ -8,7 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-@Configuration  //配置
+@Configuration  //配置CompletableFuture线程池
 public class ThreadPoolConfig {
 
     @Bean
