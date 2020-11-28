@@ -30,8 +30,8 @@ public class OrderController {
     @PostMapping("submit")
     @ResponseBody
     public ResponseVo<String> submit(@RequestBody OrderSubmitVo submitVo){
-        String rs = orderService.submit(submitVo);
-        return ResponseVo.ok();
+        String orderToken = orderService.submit(submitVo);
+        return ResponseVo.ok(orderToken);
     }
 
 }

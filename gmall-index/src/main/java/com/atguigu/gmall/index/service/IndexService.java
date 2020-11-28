@@ -52,7 +52,6 @@ public class IndexService {
 
         ResponseVo<List<CategoryEntity>> responseVo = pmsClient.quueryLv2CategorySubsByPid(pId);
         return responseVo.getData();
-
     }
 
     //手动实现缓存

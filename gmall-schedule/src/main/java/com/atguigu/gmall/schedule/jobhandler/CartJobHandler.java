@@ -29,7 +29,7 @@ public class CartJobHandler {
 
     private static final String KEY_PREFIX = "cart:info:";
 
-    @XxlJob("cartJobHandler")
+    @XxlJob("cartJobHandler") //定时任务同步redis，mysql中的购物车记录
     public ReturnT<String> handler(String param){
 
         BoundSetOperations<String, String> setOps = redisTemplate.boundSetOps(EXCEPTION_KEY);

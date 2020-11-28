@@ -40,22 +40,23 @@ public class GmallCacheAspect {
         Method method = signature.getMethod();
             //获取目标方法的注解对象
         GmallCache gmallCache = method.getAnnotation(GmallCache.class);
+            // 获取gmallCache中的前缀属性
         String prefix = gmallCache.prefix();
             //获取目标方法的参数列表
         List<Object> args = Arrays.asList(join.getArgs());
             //组装缓存的key
         String key = prefix + args;
-            //通过布隆过滤器检查数据库中是否存在这个key
+            //通过布隆过滤器检查数据库中是否存在这个key，解决缓存穿透
         boolean flag = bloomFilter.contains(key);
         if(!flag){
             return null;
         }
-        //先查询缓存
+        //先查询缓存,缓存中有直接反序列化后，直接返回
         String json = redisTemplate.opsForValue().get(key);
         if(StringUtils.isNotBlank(json)){
             return JSON.parseObject(json, method.getReturnType());
         }
-        //加分布式锁
+        //加分布式锁 解决缓存击穿
             //获取注解lock属性
         String lock = gmallCache.lock();
         RLock fairLock = redissonClient.getFairLock(lock + args);
@@ -74,7 +75,7 @@ public class GmallCacheAspect {
             //环绕后通知
                 //把结果放入缓存，如果result为null为了防止缓存穿透结果依然放入缓存（时间很短）
             if(result == null){
-//                redisTemplate.opsForValue().set(key, null,1, TimeUnit.MINUTES);//使用布隆过滤器解决
+//                redisTemplate.opsForValue().set(key, null,1, TimeUnit.MINUTES);//已使用布隆过滤器解决
             } else {
                 //给缓存添加随机值,防止缓存雪崩
                 long timeOut = gmallCache.timeout() + new Random().nextInt((int) gmallCache.random());
